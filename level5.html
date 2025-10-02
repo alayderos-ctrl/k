@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Level 5: Make it Flap!</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Times New Roman', Times, serif, sans-serif;
+    background: #222;
+    color: #fff;
+    overflow: hidden;
+  }
+  #gameCanvas {
+    display: block;
+    background: linear-gradient(to bottom, #003366, #000);
+    margin: 0 auto;
+  }
+  #info {
+    text-align: center;
+    padding: 40px;
+  }
+  #score {
+    font-size: 1.2em;
+  }
+  #message {
+    font-size: 2em;
+    margin-top: 10px;
+  }
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  #trivia {
+    margin-top: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(12, 211, 78, 0.644);
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 2em;
+  }
+</style>
+</head>
+<body>
+
+<h2 style="text-align:center; color:#0ff;">Level 5: Make it Flap!</h2>
+<canvas id="gameCanvas" width="800" height="500"></canvas>
+<div id="info">
+  <div id="score">Score: 0</div>
+  <div id="message"></div>
+  <div id="buttons"></div>
+  <div id="trivia"></div>
+</div>
+
+<script>
+// Load multiple images for beneficial and hazard squares (unchanged)
+const beneficialImagesSrcs = [
+  'https://imgs.search.brave.com/gRNMkUDxwFzgN975znTfhB3UOw9UEzcAhakCnoWcJh0/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9wNy5o/aWNsaXBhcnQuY29t/L3ByZXZpZXcvODM0/LzQ0Ny82NzgvY2Fy/dG9vbi1jbGlwLWFy/dC10cmFuc3BhcmVu/dC1jdXRlLXN1bi1w/aWN0dXJlLXRodW1i/bmFpbC5qcGc', // Example icon 1
+  'https://imgs.search.brave.com/eZSEDiOfghcScu6LuT4UsbaNbAWzRnSktgN0EL3sRro/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvNjU1/MTYyMTU4L3ZlY3Rv/ci9yYWRpby10b3dl/ci1iYWNrZ3JvdW5k/LmpwZz9zPTYxMng2/MTImdz0wJms9MjAm/Yz1fWlNsLWpMcFo1/eHBjdTFsUUItdFZM/MUt0eWtsRnBCZjJr/M2lSSlZpRzdVPQ', // Example icon 2
+  'https://imgs.search.brave.com/ny320fabRhkHvnqmtwGQn4OCAWrnCUPL5npdTq8PXJc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMjA1OS8yMDU5/Njc2LnBuZw' // Add more images
+];
+
+const hazardImagesSrcs = [
+  'https://imgs.search.brave.com/-8DJnhvcfpGUl1BAJNIrhfr5Rz8IplapHaDeahKm5-8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS12ZWN0/b3IveC1yYXktbWFj/aGluZS1zY2Fubmlu/Zy1odW1hbi1ib2R5/LWlsbHVzdHJhdGlv/bl8yODQwOTItMjMy/My5qcGc_c2VtdD1h/aXNfaHlicmlkJnc9/NzQwJnE9ODA', // Example hazard 1
+  'https://imgs.search.brave.com/8fWZD40rh3FlInCEWtn2CLtpmgl-YP-JtmStS8ALh-Y/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzE2LzE0LzQ0LzM0/LzM2MF9GXzE2MTQ0/NDM0NTZfTE5yS0I1/eWVMeUpjcnhFMzQ2/d2Z0YnFBS2lSTWFn/S2ouanBn', // Example hazard 2
+  'https://imgs.search.brave.com/03_APbGHDWIEzPZE65MvqCbMkst5q3DjdxgtLL8ydIY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/c2h1dHRlcnN0b2Nr/LmNvbS9pbWFnZS12/ZWN0b3IvcmFkaW9h/Y3RpdmUtaGF6YXJk/LXNpZ24tbnVjbGVh/ci1ub25pb25pemlu/Zy0yNjBudy0xOTM2/NDY5MDg5LmpwZw' // Add more images
+];
+
+const beneficialImgs = [];
+const hazardImgs = [];
+
+let imagesLoadedCount = 0;
+
+// Load beneficial images
+beneficialImagesSrcs.forEach(src => {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => {
+    beneficialImgs.push(img);
+    imagesLoadedCount++;
+    if (imagesLoadedCount === beneficialImagesSrcs.length + hazardImagesSrcs.length) {
+      init(); // Start game after all images load
+    }
+  };
+});
+
+// Load hazard images
+hazardImagesSrcs.forEach(src => {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => {
+    hazardImgs.push(img);
+    imagesLoadedCount++;
+    if (imagesLoadedCount === beneficialImagesSrcs.length + hazardImagesSrcs.length) {
+      init();
+    }
+  };
+});
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let score = 0;
+let gameOver = false;
+let levelComplete = false;
+
+const targetScore = 2;
+
+// Player object
+const player = {
+  x: 50,
+  y: 250,
+  radius: 20,
+  vy: 0,
+  gravity: 0.5,
+  lift: -8
+};
+
+// Items & hazards
+const items = [];
+const itemSize = 50;
+let frameCount = 0;
+
+// Trivia facts
+const triviaFacts = [
+  "Electromagnetic radiation includes visible light, radio waves, X-rays, and more.",
+  "Wi-Fi signals are a form of electromagnetic radiation with specific frequencies.",
+  "Medical imaging techniques like MRI use magnetic fields and radio waves.",
+  "Excessive exposure to high-frequency EMR can be harmful to health.",
+  "Solar radiation includes visible light, UV rays, and infrared radiation."
+];
+
+// ------------------- Particles Background -------------------
+
+const particles = [];
+const maxParticles = 100;
+
+function initParticles() {
+  for (let i=0; i<maxParticles; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      radius: Math.random() * 2 + 1,
+      alpha: Math.random()
+    });
+  }
+}
+
+function updateParticles() {
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    // Wrap around edges
+    if (p.x < 0) p.x += canvas.width;
+    if (p.x > canvas.width) p.x -= canvas.width;
+    if (p.y < 0) p.y += canvas.height;
+    if (p.y > canvas.height) p.y -= canvas.height;
+  });
+}
+
+function drawParticles() {
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  particles.forEach(p => {
+    ctx.globalAlpha = p.alpha;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1.0;
+}
+
+// ------------------- Game Initialization -------------------
+
+function init() {
+  initParticles();
+
+  // Generate items periodically with random images
+  function generateItems() {
+    if (frameCount % 100 === 0) {
+      const isBeneficial = Math.random() < 0.6;
+      const yPos = Math.random() * (canvas.height - itemSize);
+      const imgArray = isBeneficial ? beneficialImgs : hazardImgs;
+      const img = imgArray[Math.floor(Math.random() * imgArray.length)];
+      items.push({ x: canvas.width, y: yPos, type: isBeneficial ? 'beneficial' : 'hazard', img: img });
+    }
+  }
+
+  // User input
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      player.vy = player.lift;
+    }
+  });
+  canvas.addEventListener('click', () => {
+    if (!gameOver && !levelComplete) {
+      player.vy = player.lift;
+    }
+  });
+  document.getElementById('buttons').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      if (e.target.id === 'tryAgain') {
+        resetGame();
+      } else if (e.target.id === 'nextLevel') {
+        startNextLevel();
+      }
+    }
+  });
+
+  // Reset game
+  function resetGame() {
+    score = 0;
+    gameOver = false;
+    levelComplete = false;
+    document.getElementById('score').textContent = 'Score: 0';
+    document.getElementById('message').textContent = '';
+    document.getElementById('trivia').innerHTML = '';
+    document.getElementById('buttons').innerHTML = '';
+    items.length = 0;
+    player.y = 250;
+    player.vy = 0;
+    frameCount = 0;
+    loop();
+  }
+
+  // Updated function to navigate to level6.html
+  function startNextLevel() {
+    window.location.href = 'level6.html'; // Connect to next level
+  }
+
+  function drawPlayer() {
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#00ffff'; // Blue wave
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawItems() {
+    items.forEach(item => {
+      ctx.drawImage(item.img, item.x, item.y, itemSize, itemSize);
+    });
+  }
+
+  function update() {
+    if (gameOver || levelComplete) return;
+
+    // Update particles
+    updateParticles();
+
+    // Update player physics
+    player.vy += player.gravity;
+    player.y += player.vy;
+
+    if (player.y + player.radius > canvas.height) {
+      player.y = canvas.height - player.radius;
+      player.vy = 0;
+    }
+    if (player.y - player.radius < 0) {
+      player.y = player.radius;
+      player.vy = 0;
+    }
+
+    generateItems();
+
+    // Move items
+    items.forEach(item => {
+      item.x -= 8;
+    });
+    while (items.length > 0 && items[0].x + itemSize < 0) {
+      items.shift();
+    }
+
+    // Check collisions
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (
+        player.x + player.radius > item.x &&
+        player.x - player.radius < item.x + itemSize &&
+        player.y + player.radius > item.y &&
+        player.y - player.radius < item.y + itemSize
+      ) {
+        if (item.type === 'beneficial') {
+          score++;
+          document.getElementById('score').textContent = 'Score: ' + score;
+          items.splice(i,1);
+          if (score >= targetScore) {
+            levelComplete = true;
+            showWin();
+          }
+        } else {
+          gameOver = true;
+          showGameOver();
+        }
+      }
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw particles in background
+    drawParticles();
+    drawPlayer();
+    drawItems();
+    ctx.fillStyle = '#fff';
+    ctx.font = '26px Times New Roman';
+    ctx.fillText('Avoid the HAZARDS and collect BENEFICIAL sources.', 10, 20);
+    ctx.fillText('Score: ' + score, 700, 20);
+  }
+
+  function showGameOver() {
+    document.getElementById('message').textContent = 'Exposure! Game Over.';
+    document.getElementById('buttons').innerHTML = '<button id="tryAgain">Try Again</button>';
+    showTrivia(false);
+  }
+
+  function showWin() {
+    document.getElementById('message').textContent = 'Congratulations! You reached 20 points!';
+    document.getElementById('buttons').innerHTML = '<button id="nextLevel">Next Level</button>';
+    showTrivia(true);
+  }
+
+  function showTrivia(win) {
+    const triviaDiv = document.getElementById('trivia');
+    if (win) {
+      const trivia = triviaFacts[Math.floor(Math.random() * triviaFacts.length)];
+      triviaDiv.innerHTML = '<strong>Did you know?</strong> ' + trivia;
+    } else {
+      triviaDiv.innerHTML = '';
+    }
+  }
+
+  function loop() {
+    if (gameOver || levelComplete) return;
+    update();
+    draw();
+    frameCount++;
+    requestAnimationFrame(loop);
+  }
+
+  // Start game
+  resetGame();
+}
+</script>
+</body>
+</html>
