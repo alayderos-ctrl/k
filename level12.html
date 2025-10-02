@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simple Platformer Game</title>
+<style>
+  body {
+    margin: 0;
+    background-color: #87CEEB;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+  #gameCanvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #70c5ce;
+    border: 2px solid #333;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Player properties
+const player = {
+  x: 50,
+  y: 0,
+  width: 40,
+  height: 60,
+  color: 'red',
+  velX: 0,
+  velY: 0,
+  speed: 5,
+  jumping: false
+};
+
+// Gravity
+const gravity = 0.5;
+
+// Key controls
+const keys = {
+  right: false,
+  left: false,
+  up: false
+};
+
+// Platforms
+const platforms = [
+  { x: 0, y: 380, width: 800, height: 20 },
+  { x: 200, y: 300, width: 100, height: 10 },
+  { x: 400, y: 250, width: 150, height: 10 },
+  { x: 600, y: 200, width: 100, height: 10 }
+];
+
+// Collectibles
+const collectibles = [
+  { x: 220, y: 280, size: 10, collected: false },
+  { x: 430, y: 230, size: 10, collected: false },
+  { x: 610, y: 180, size: 10, collected: false }
+];
+
+let score = 0;
+
+// Handle key down
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight') keys.right = true;
+  if (e.key === 'ArrowLeft') keys.left = true;
+  if (e.key === 'ArrowUp') {
+    if (!player.jumping) {
+      player.velY = -10;
+      player.jumping = true;
+    }
+  }
+});
+
+// Handle key up
+document.addEventListener('keyup', function(e) {
+  if (e.key === 'ArrowRight') keys.right = false;
+  if (e.key === 'ArrowLeft') keys.left = false;
+});
+
+// Game loop
+function gameLoop() {
+  // Clear canvas
+  ctx.clearRect(0, 0, 800, 400);
+
+  // Apply horizontal movement
+  if (keys.right) player.velX = player.speed;
+  else if (keys.left) player.velX = -player.speed;
+  else player.velX = 0;
+
+  // Apply gravity
+  player.velY += gravity;
+
+  // Move player
+  player.x += player.velX;
+  player.y += player.velY;
+
+  // Collide with platforms
+  let onPlatform = false;
+  platforms.forEach(p => {
+    if (
+      player.x < p.x + p.width &&
+      player.x + player.width > p.x &&
+      player.y + player.height > p.y &&
+      player.y + player.height < p.y + p.height + 1
+    ) {
+      player.y = p.y - player.height;
+      player.velY = 0;
+      player.jumping = false;
+      onPlatform = true;
+    }
+  });
+
+  // Prevent falling below ground
+  if (player.y + player.height > 400) {
+    player.y = 400 - player.height;
+    player.velY = 0;
+    player.jumping = false;
+  }
+
+  // Draw platforms
+  ctx.fillStyle = '#654321';
+  platforms.forEach(p => {
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+  });
+
+  // Draw collectibles
+  ctx.fillStyle = 'gold';
+  collectibles.forEach(c => {
+    if (!c.collected) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Draw player
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+
+  // Check for collectible collection
+  collectibles.forEach(c => {
+    if (!c.collected) {
+      if (
+        player.x < c.x + c.size &&
+        player.x + player.width > c.x - c.size &&
+        player.y < c.y + c.size &&
+        player.y + player.height > c.y - c.size
+      ) {
+        c.collected = true;
+        score++;
+      }
+    }
+  });
+
+  // Display score
+  ctx.fillStyle = 'black';
+  ctx.font = '20px Arial';
+  ctx.fillText('Score: ' + score, 10, 20);
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start game
+gameLoop();
+</script>
+</body>
+</html>
