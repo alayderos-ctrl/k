@@ -3,14 +3,40 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Simple Tetris Game</title>
+<title>EM Spectrum Tetris with Rotation and Line Clearing</title>
 <style>
   body {
     background: #222;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+    color: #fff;
+  }
+
+  #score {
+    font-size: 20px;
+    margin: 10px;
+  }
+  #status {
+    font-size: 24px;
+    margin: 10px;
+    color: #0ff;
+    text-align: center;
+  }
+  #learningFact {
+    margin-top: 15px;
+    padding: 10px;
+    max-width: 700px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: none;
+  }
+  #learningFact h3 {
+    margin: 0 0 10px 0;
+  }
+  #learningFact p {
     margin: 0;
   }
   #tetris-container {
@@ -27,19 +53,28 @@
     height: 30px;
     background: #222;
   }
-  .filled {
-    background: #f00;
-  }
 </style>
 </head>
 <body>
 
+<div id="score">Score: 0</div>
+<div id="status"></div>
+<div id="learningFact">
+  <h3 id="factTitle"></h3>
+  <p id="factText"></p>
+</div>
 <div id="tetris-container"></div>
 
 <script>
+// Define the grid
 const rows = 20;
 const cols = 10;
 const container = document.getElementById('tetris-container');
+const scoreDisplay = document.getElementById('score');
+const statusDisplay = document.getElementById('status');
+const factDiv = document.getElementById('learningFact');
+const factTitle = document.getElementById('factTitle');
+const factText = document.getElementById('factText');
 
 let grid = [];
 for (let r = 0; r < rows; r++) {
@@ -51,31 +86,85 @@ for (let r = 0; r < rows; r++) {
   }
 }
 
-let currentPiece = null;
-let currentPosition = 0;
+let score = 0;
+const targetScore = 1000;
+let levelCleared = false;
 
-// Define simple tetromino shapes
-const shapes = [
-  { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
-  { shape: [[1, 1], [1, 1]], color: 'yellow' }, // O
-  { shape: [[0,1,0],[1,1,1]], color: 'purple' }, // T
-  { shape: [[1,0,0],[1,1,1]], color: 'blue' }, // J
-  { shape: [[0,0,1],[1,1,1]], color: 'orange' }, // L
-  { shape: [[1,1,0],[0,1,1]], color: 'green' }, // S
-  { shape: [[0,1,1],[1,1,0]], color: 'red' }, // Z
+// EM Spectrum shapes with associated wave type, color, icon, fact
+const spectrumShapes = [
+  {
+    name: 'Radio Waves',
+    color: '#8A2BE2',
+    icon: '📻',
+    fact: 'Radio waves are used for wireless communication, including radio, TV, and cell phones.',
+    shape: [[1, 1, 1, 1]],
+  },
+  {
+    name: 'Microwaves',
+    color: '#FF8C00',
+    icon: '🍲',
+    fact: 'Microwaves are used in microwave ovens, radar, and satellite communications.',
+    shape: [[1, 1], [1, 1]],
+  },
+  {
+    name: 'Infrared',
+    color: '#FF4500',
+    icon: '🔥',
+    fact: 'Infrared radiation is used in heat sensing, remote controls, and night-vision devices.',
+    shape: [[0,1,0],[1,1,1]],
+  },
+  {
+    name: 'Visible Light',
+    color: '#FFFF00',
+    icon: '💡',
+    fact: 'Visible light is the spectrum that human eyes can see, enabling us to perceive colors.',
+    shape: [[1,1,1]],
+  },
+  {
+    name: 'Ultraviolet',
+    color: '#800080',
+    icon: '🌞',
+    fact: 'Ultraviolet rays are emitted by the sun and are used for sterilization and fluorescent lighting.',
+    shape: [[0,1,0],[1,1,1]],
+  },
+  {
+    name: 'X-Rays',
+    color: '#87CEFA',
+    icon: '🩻',
+    fact: 'X-rays are used in medical imaging to view inside the body.',
+    shape: [[1,0],[1,1]],
+  },
+  {
+    name: 'Gamma Rays',
+    color: '#FFC0CB',
+    icon: '☢️',
+    fact: 'Gamma rays are used in cancer treatment and originate from nuclear reactions and cosmic events.',
+    shape: [[1]],
+  }
 ];
 
-function getRandomShape() {
-  return shapes[Math.floor(Math.random() * shapes.length)];
+function getRandomSpectrumShape() {
+  return spectrumShapes[Math.floor(Math.random() * spectrumShapes.length)];
 }
 
 let currentShape = null;
-let currentRotation = 0;
 let currentX = 3;
 let currentY = 0;
+let currentSpectrum = null;
+
+function spawnShape() {
+  currentSpectrum = getRandomSpectrumShape();
+  currentShape = {...currentSpectrum};
+  currentX = 3;
+  currentY = 0;
+  if (collision()) {
+    alert('Game Over');
+    clearInterval(gameInterval);
+  }
+  drawShape();
+}
 
 function drawShape() {
-  if (!currentShape) return;
   currentShape.shape.forEach((row, rIdx) => {
     row.forEach((cell, cIdx) => {
       if (cell) {
@@ -89,7 +178,6 @@ function drawShape() {
 }
 
 function undrawShape() {
-  if (!currentShape) return;
   currentShape.shape.forEach((row, rIdx) => {
     row.forEach((cell, cIdx) => {
       if (cell) {
@@ -100,18 +188,6 @@ function undrawShape() {
       }
     });
   });
-}
-
-function moveDown() {
-  undrawShape();
-  currentY++;
-  if (collision()) {
-    currentY--;
-    lockShape();
-    clearLines();
-    spawnShape();
-  }
-  drawShape();
 }
 
 function collision() {
@@ -143,9 +219,10 @@ function lockShape() {
       }
     }
   }
+  checkAndClearFullLines(); // Check for full lines after locking shape
 }
 
-function clearLines() {
+function checkAndClearFullLines() {
   for (let r = rows - 1; r >= 0; r--) {
     let fullLine = true;
     for (let c = 0; c < cols; c++) {
@@ -156,13 +233,13 @@ function clearLines() {
       }
     }
     if (fullLine) {
-      // Remove line
+      // Clear this line
       for (let c = 0; c < cols; c++) {
         const index = r * cols + c;
         grid[index].className = 'cell';
         grid[index].style.background = '#222';
       }
-      // Drop above lines
+      // Shift above lines down
       for (let aboveR = r - 1; aboveR >= 0; aboveR--) {
         for (let c = 0; c < cols; c++) {
           const fromIndex = aboveR * cols + c;
@@ -171,32 +248,48 @@ function clearLines() {
           grid[toIndex].style.background = grid[fromIndex].style.background;
         }
       }
+      // Clear top row after shift
+      for (let c = 0; c < cols; c++) {
+        const index = c; // top row
+        grid[index].className = 'cell';
+        grid[index].style.background = '#222';
+      }
+      // Add points for cleared line
+      updateScore(100);
+      // Recheck same row index because we've shifted rows down
       r++;
     }
   }
 }
 
-function spawnShape() {
-  currentShape = getRandomShape();
-  currentX = 3;
-  currentY = 0;
-  if (collision()) {
-    alert('Game Over');
-    clearInterval(gameInterval);
+function updateScore(points) {
+  if (levelCleared) return;
+  score += points;
+  scoreDisplay.textContent = 'Score: ' + score;
+  if (score >= targetScore) {
+    levelCleared = true;
+    showLevelClear();
   }
 }
 
-function rotate() {
-  undrawShape();
-  const oldShape = currentShape.shape;
-  currentShape.shape = currentShape.shape[0].map((_, index) => currentShape.shape.map(row => row[index])).reverse();
-  if (collision()) {
-    currentShape.shape = oldShape;
-  }
-  drawShape();
+function showLevelClear() {
+  statusDisplay.textContent = '🌟 EM Spectrum Level Cleared! 🌟';
+  showRandomFact();
 }
 
+function checkAndShowFact() {
+  showFact(currentSpectrum);
+}
+
+function showFact(spectrum) {
+  factDiv.style.display = 'block';
+  document.getElementById('factTitle').textContent = spectrum.name;
+  document.getElementById('factText').textContent = spectrum.fact;
+}
+
+// Controls with rotation
 document.addEventListener('keydown', (e) => {
+  if (levelCleared) return;
   undrawShape();
   if (e.key === 'ArrowLeft') {
     currentX--;
@@ -207,16 +300,37 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'ArrowDown') {
     moveDown();
   } else if (e.key === 'ArrowUp') {
-    rotate();
+    rotateShape();
   }
   drawShape();
 });
 
+function rotateShape() {
+  const oldShape = currentShape.shape;
+  const newShape = oldShape[0].map((_, index) => oldShape.map(row => row[index]).reverse());
+  currentShape.shape = newShape;
+  if (collision()) {
+    currentShape.shape = oldShape; // revert if collision
+  }
+}
+
+function moveDown() {
+  if (levelCleared) return;
+  undrawShape();
+  currentY++;
+  if (collision()) {
+    currentY--;
+    lockShape();
+    checkAndShowFact();
+    spawnShape();
+  }
+  drawShape();
+}
+
+// Start game
 spawnShape();
 drawShape();
-
 const gameInterval = setInterval(moveDown, 500);
 </script>
-
 </body>
 </html>
