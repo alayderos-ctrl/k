@@ -106,7 +106,12 @@
 <div id="feedback"></div>
 <div id="scoreBoard">Score: 0 / 7</div>
 <div id="message"></div>
-<button id="nextLevelBtn" onclick="nextLevel()">Next Level</button>
+
+<!-- Changed Next Level button to link to level7.html -->
+<a id="nextLevelBtn" href="level7.html" style="text-decoration:none; display:none;">
+  <button>Next Level</button>
+</a>
+
 <button id="restartBtn" onclick="startGame()">Restart Game</button>
 
 <!-- Trivia section -->
@@ -163,18 +168,18 @@ const feedbackDiv = document.getElementById('feedback');
 const scoreDiv = document.getElementById('scoreBoard');
 const messageDiv = document.getElementById('message');
 const spectrumDiv = document.getElementById('spectrum');
-const nextLevelBtn = document.getElementById('nextLevelBtn');
+const nextLevelLink = document.getElementById('nextLevelBtn');
 const restartBtn = document.getElementById('restartBtn');
 const triviaDiv = document.getElementById('trivia');
 
 const allWaves = [
-  { name: 'Radio waves', class: 'radio waves' },
+  { name: 'Radio waves', class: 'radio' },
   { name: 'Microwave', class: 'microwave' },
   { name: 'Infrared', class: 'infrared' },
-  { name: 'Visible light', class: 'visible light' },
+  { name: 'Visible light', class: 'visible' },
   { name: 'Ultraviolet', class: 'ultraviolet' },
   { name: 'X-ray', class: 'xray' },
-  { name: 'Gamma rays', class: 'gamma rays' }
+  { name: 'Gamma rays', class: 'gamma' }
 ];
 
 function shuffle(array) {
@@ -194,7 +199,7 @@ function startGame() {
   score = 0;
   currentQuestionIndex = 0;
   scoreDiv.innerText = `Score: 0 / 7`;
-  nextLevelBtn.style.display = 'none';
+  nextLevelLink.style.display = 'none';
   restartBtn.style.display = 'none';
   questionDiv.style.display = 'block';
 
@@ -227,7 +232,7 @@ function loadQuestion() {
     feedbackDiv.innerText = '';
     messageDiv.innerText = 'Congratulations! You answered all questions correctly!';
     showTrivia();
-    nextLevelBtn.style.display = 'inline-block';
+    nextLevelLink.style.display = 'inline-block';
     restartBtn.style.display = 'inline-block';
     return;
   }
@@ -263,15 +268,10 @@ function showTrivia() {
   triviaDiv.style.display = 'block';
 }
 
-function nextLevel() {
-  // For demonstration, just restart the game for next level
-  // You can customize to load new questions or increase difficulty
-  startGame();
-}
+// No need for nextLevel() function anymore since the button is a link
 
 // Start the game initially
 startGame();
-
 
 /* --- Particles background code (unchanged) --- */
 const canvas = document.getElementById('particles');
