@@ -68,6 +68,11 @@
 </head>
 <body>
 
+<!-- Audio elements for sounds and music -->
+<audio id="shootSound" src="C:\Users\Allen\Downloads\retro-laser-1-236669.mp3" preload="auto"></audio>
+<audio id="hitSound" src="C:\Users\Allen\Downloads\hit-soundvideo-game-type-230510.mp3" preload="auto"></audio>
+<audio id="bgm" src="C:\Users\Allen\Downloads\space-level-62438.mp3" preload="auto" loop></audio>
+
 <div id="scoreBoard">Score: 0 | Target: 30</div>
 <div id="timer" style="position: fixed; top: 10px; right: 20px; color: white; font-size: 24px; z-index: 10;">30</div>
 
@@ -94,6 +99,11 @@ const overlay = document.getElementById('messageOverlay');
 const messageContent = document.getElementById('messageContent');
 const nextLevelBtn = document.getElementById('nextLevelBtn');
 const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+// Audio references
+const shootSound = document.getElementById('shootSound');
+const hitSound = document.getElementById('hitSound');
+const bgm = document.getElementById('bgm');
 
 const targetScore = 30; // Fixed target score
 let currentScore = 0;
@@ -138,6 +148,9 @@ for (let key in images) {
 }
 
 function startGame() {
+  // Play background music
+  bgm.play();
+
   const scaleFactor = 1.4; // Player size +40%
   const originalShooterWidth = 48;
   const originalShooterHeight = 24;
@@ -213,6 +226,10 @@ function startGame() {
     if (player.x + player.width > 600) player.x = 600 - player.width;
 
     if (shootFlag && bullets.length < 3) {
+      // Play shooting sound
+      shootSound.currentTime = 0;
+      shootSound.play();
+
       bullets.push({
         x: player.x + player.width/2 - bulletWidth/2,
         y: player.y,
@@ -243,6 +260,11 @@ function startGame() {
           bullets.splice(j,1);
           currentScore++;
           updateScore();
+
+          // Play hit sound
+          hitSound.currentTime = 0;
+          hitSound.play();
+
           spawnEnemy();
           checkLevelProgress();
           break;
