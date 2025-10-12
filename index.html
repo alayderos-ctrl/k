@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SpecQuest - Home</title>
+<title>SpecQuest - Login</title>
 
 <!-- Google Fonts for custom fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
 
 <style>
   * {
@@ -44,8 +44,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 50px 20px;
+    justify-content: center; /* Centered for login */
+    padding: 20px;
   }
 
   /* Title container with tiles */
@@ -93,11 +93,27 @@
     padding: 0 10px;
   }
 
-  /* Play button styling */
-  .play-button {
-    margin-top: 40px;
-    padding: 20px 50px;
-    font-size: 24px;
+  /* Login form styling */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+    width: 300px;
+  }
+
+  .login-input {
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+
+  .login-button {
+    padding: 12px 25px;
+    font-size: 18px;
     font-family: 'Roboto Slab', serif;
     background-color: #00ffff;
     color: #000;
@@ -108,7 +124,7 @@
     transition: all 0.3s ease;
   }
 
-  .play-button:hover {
+  .login-button:hover {
     background-color: #ffcc00;
     color: #000;
     box-shadow: 0 0 25px #ffcc00, inset 0 0 15px #000;
@@ -121,9 +137,12 @@
       font-size: 50px;
       padding: 10px 15px;
     }
-    .play-button {
-      padding: 15px 30px;
-      font-size: 20px;
+    .login-form {
+      width: 80%;
+    }
+    .login-button {
+      padding: 10px 20px;
+      font-size: 16px;
     }
   }
 </style>
@@ -145,11 +164,11 @@
     TRANSFORMING SCIENCE EDUCATION THROUGH GAMIFICATION
   </div>
 
-  <!-- Play Button -->
-  <button class="play-button" onclick="location.href='levels.html'">Play</button>
-  
-  <!-- Resume Button -->
-  <button class="play-button" id="resumeBtn" style="margin-top:20px; background:#ffcc00; color:#000;">Resume</button>
+  <!-- Login Form -->
+  <form id="loginForm" class="login-form">
+    <input type="text" id="fullName" class="login-input" placeholder="Enter Full Name" required />
+    <button type="submit" class="login-button">Start Game</button>
+  </form>
 </div>
 
 <!-- JavaScript for particles and dynamic title -->
@@ -242,11 +261,18 @@
     titleContainer.appendChild(span);
   }
 
-  // Handle the Resume Button
-  document.getElementById('resumeBtn').addEventListener('click', () => {
-    // For now, just reload page to "resume"
-    location.reload();
+  // Supabase setup - replace with your own URL and anon key
+  const supabaseUrl = 'https://bgrpflkberwkqurijyvp.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJncnBmbGtiZXJ3a3F1cmlqeXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDI4NTQsImV4cCI6MjA3NTU3ODg1NH0.Z25nBvt-OG_RjJCdtY55D8hFsjs0Xs1adttwnXcIn9Y';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  // Handle form submission - redirect to level1.html
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Redirect directly to level1.html
+    window.location.href = 'level1.html';
   });
+
 </script>
 
 </body>
