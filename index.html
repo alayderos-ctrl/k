@@ -266,13 +266,28 @@
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJncnBmbGtiZXJ3a3F1cmlqeXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDI4NTQsImV4cCI6MjA3NTU3ODg1NH0.Z25nBvt-OG_RjJCdtY55D8hFsjs0Xs1adttwnXcIn9Y';
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // Handle form submission - redirect to level1.html
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
+  // Handle form submission - save name to Supabase 'students' table and then redirect
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    // Redirect directly to level1.html
-    window.location.href = 'level1.html';
-  });
+    const fullName = document.getElementById('fullName').value.trim();
 
+    if (fullName) {
+      // Insert into 'students' table
+      const { data, error } = await supabase
+        .from('students')
+        .insert([{ full_name: fullName }]);
+
+      if (error) {
+        alert('Error saving your name. Please try again.');
+        console.error(error);
+      } else {
+        // Save successful, redirect to the game page
+        window.location.href = 'level1.html';
+      }
+    } else {
+      alert('Please enter your full name.');
+    }
+  });
 </script>
 
 </body>
