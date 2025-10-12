@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SpecQuest - Login</title>
+<title>SpecQuest - Home</title>
 
 <!-- Google Fonts for custom fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
@@ -44,8 +44,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centered for login */
-    padding: 20px;
+    justify-content: space-between;
+    padding: 50px 20px;
   }
 
   /* Title container with tiles */
@@ -93,27 +93,11 @@
     padding: 0 10px;
   }
 
-  /* Login form styling */
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 30px;
-    width: 300px;
-  }
-
-  .login-input {
-    padding: 10px 15px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 15px;
-    width: 100%;
-  }
-
-  .login-button {
-    padding: 12px 25px;
-    font-size: 18px;
+  /* Common button styling */
+  .play-button {
+    margin-top: 20px;
+    padding: 20px 50px;
+    font-size: 24px;
     font-family: 'Roboto Slab', serif;
     background-color: #00ffff;
     color: #000;
@@ -122,9 +106,15 @@
     cursor: pointer;
     box-shadow: 0 0 15px #00ffff, inset 0 0 10px #000;
     transition: all 0.3s ease;
+    display: none; /* Hidden by default, shown after login */
   }
 
-  .login-button:hover {
+  /* Show button when needed */
+  .show {
+    display: inline-block;
+  }
+
+  .play-button:hover {
     background-color: #ffcc00;
     color: #000;
     box-shadow: 0 0 25px #ffcc00, inset 0 0 15px #000;
@@ -137,12 +127,9 @@
       font-size: 50px;
       padding: 10px 15px;
     }
-    .login-form {
-      width: 80%;
-    }
-    .login-button {
-      padding: 10px 20px;
-      font-size: 16px;
+    .play-button {
+      padding: 15px 30px;
+      font-size: 20px;
     }
   }
 </style>
@@ -164,15 +151,32 @@
     TRANSFORMING SCIENCE EDUCATION THROUGH GAMIFICATION
   </div>
 
-  <!-- Login Form -->
-  <form id="loginForm" class="login-form">
-    <input type="text" id="fullName" class="login-input" placeholder="Enter Full Name" required />
-    <button type="submit" class="login-button">Start Game</button>
-  </form>
+  <!-- Play Button (hidden initially) -->
+  <button class="play-button" id="playBtn">Play</button>
 </div>
 
 <!-- JavaScript for particles and dynamic title -->
 <script>
+  // Simulate login and game state
+  let isLoggedIn = false;
+  let hasUnfinishedGame = false;
+  let unfinishedLevel = null; // e.g., 'level3'
+
+  // Example: after some login process, set isLoggedIn to true
+  // For demonstration, we'll auto-login after 1 second
+  setTimeout(() => {
+    isLoggedIn = true;
+
+    // Suppose player has an unfinished game at level 3
+    // Set hasUnfinishedGame = true to show Resume
+    // To test both scenarios, you can toggle this value
+    hasUnfinishedGame = true; // or false
+    unfinishedLevel = 'level3'; // example level
+
+    // After setting login, update buttons
+    updateButtons();
+  }, 1000);
+
   // Particle background
   const canvas = document.getElementById('particles');
   const ctx = canvas.getContext('2d');
@@ -261,33 +265,26 @@
     titleContainer.appendChild(span);
   }
 
-  // Supabase setup - replace with your own URL and anon key
-  const supabaseUrl = 'https://bgrpflkberwkqurijyvp.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJncnBmbGtiZXJ3a3F1cmlqeXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDI4NTQsImV4cCI6MjA3NTU3ODg1NH0.Z25nBvt-OG_RjJCdtY55D8hFsjs0Xs1adttwnXcIn9Y';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  // Get button element
+  const playBtn = document.getElementById('playBtn');
 
-  // Handle form submission - save name to Supabase 'students' table and then redirect
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fullName = document.getElementById('fullName').value.trim();
-
-    if (fullName) {
-      // Insert into 'students' table
-      const { data, error } = await supabase
-        .from('students')
-        .insert([{ full_name: fullName }]);
-
-      if (error) {
-        alert('Error saving your name. Please try again.');
-        console.error(error);
-      } else {
-        // Save successful, redirect to the game page
-        window.location.href = 'level1.html';
-      }
+  // Function to update button visibility based on login and game state
+  function updateButtons() {
+    if (isLoggedIn) {
+      playBtn.classList.add('show');
     } else {
-      alert('Please enter your full name.');
+      playBtn.classList.remove('show');
     }
+  }
+
+  // Handle Play button click
+  playBtn.addEventListener('click', () => {
+    // Redirect to levels.html
+    location.href = 'level1.html';
   });
+
+  // Initial update
+  updateButtons();
 </script>
 
 </body>
