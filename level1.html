@@ -7,6 +7,7 @@
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
 <style>
+  /* ... your existing styles ... */
   * {
     margin: 0;
     padding: 0;
@@ -63,7 +64,7 @@
     font-size: 24px;
   }
 
-  #timer, #stars {
+  #timer, #stars, #total-score {
     color: #fff;
     font-family: 'Orbitron', sans-serif;
     font-size: 20px;
@@ -190,6 +191,7 @@
     <div>
       <div id="timer">Time: 30</div>
       <div id="stars">Stars: ★★★</div>
+      <div id="total-score">Total Score: 0</div>
     </div>
   </div>
   <div id="instructions" style="color:#fff; margin-bottom:10px;">Order electromagnetic spectrum (coldest to hottest)</div>
@@ -198,7 +200,8 @@
     <button id="submit-btn">Check</button>
     <button id="try-again-btn" style="display:none;">Try Again</button>
     <button id="next-level-btn" style="display:none;">Next Level</button>
-    <button id="restart-btn">Restart</button>
+    <!-- Removed Restart button -->
+    <!-- <button id="restart-btn">Restart</button> -->
   </div>
 </div>
 
@@ -309,6 +312,10 @@
   // For tap-to-swap
   let selectedTileIndex = null;
 
+  // Initialize total score from localStorage or zero
+  let totalScore = 0; // Directly set to zero
+  document.getElementById('total-score').textContent = `Total Score: ${totalScore}`;
+
   function initTiles() {
     const shuffled = [...correctOrder].sort(() => Math.random() - 0.5);
     tilesData = shuffled;
@@ -316,6 +323,7 @@
   }
 
   function renderTiles() {
+    // Clear previous
     tilesContainer.innerHTML = '';
     tilesData.forEach((text, index) => {
       const wrapper = document.createElement('div');
@@ -327,12 +335,6 @@
 
       const tile = document.createElement('div');
       tile.className = 'tile';
-
-      // Remove draggable events
-      // tile.draggable = true;
-      // tile.addEventListener('dragstart', dragStart);
-      // tile.addEventListener('dragover', dragOver);
-      // tile.addEventListener('drop', drop);
 
       // Add click event for tap-to-swap
       tile.addEventListener('click', () => {
@@ -407,6 +409,12 @@
     document.getElementById('stars').textContent = 'Stars: ' + starStr;
   }
 
+  function updateTotalScore() {
+    totalScore += starsCount; // Add current stars to total score
+    localStorage.setItem('totalScore', totalScore);
+    document.getElementById('total-score').textContent = `Total Score: ${totalScore}`;
+  }
+
   function checkSolution(auto=false) {
     clearInterval(timerInterval);
     let isCorrect = true;
@@ -424,19 +432,27 @@
     }
     updateStarsDisplay();
 
+    // Update total score
+    updateTotalScore();
+
     const feedbackDiv = document.getElementById('feedback');
     feedbackDiv.style.display = 'block';
 
     if (isCorrect) {
       feedbackDiv.innerHTML = 'Correct! Well done!';
-      document.getElementById('next-level-btn').style.display = 'block';
-      document.getElementById('try-again-btn').style.display = 'block';
-      document.getElementById('triviaSection').style.display = 'block';
+      // Hide Next Level and Try Again buttons
+      document.getElementById('next-level-btn').style.display = 'none';
+      document.getElementById('try-again-btn').style.display = 'none';
+
+      // Redirect to next level automatically
+      setTimeout(() => {
+        // Replace 'level2.html' with your actual next level page
+        window.location.href = 'level2.html?score=' + totalScore;
+      }, 2000); // wait 2 seconds before redirect
     } else {
       feedbackDiv.innerHTML = 'Wrong order! Try again.';
       document.getElementById('next-level-btn').style.display = 'none';
       document.getElementById('try-again-btn').style.display = 'block';
-      document.getElementById('triviaSection').style.display = 'none';
     }
   }
 
@@ -446,19 +462,14 @@
   document.getElementById('try-again-btn').addEventListener('click', () => {
     restartLevel();
   });
-  document.getElementById('restart-btn').addEventListener('click', () => {
-    restartLevel();
-  });
-  document.getElementById('next-level-btn').addEventListener('click', () => {
-    window.location.href = 'level2.html'; // or your next level URL
-  });
+  // Removed event listener for restart button since it no longer exists
 
   function restartLevel() {
     initTiles();
     startTimer();
     document.getElementById('feedback').style.display = 'none';
     document.getElementById('try-again-btn').style.display = 'none';
-    document.getElementById('next-level-btn').style.display = 'none';
+    // No restart button to hide
     totalTime = 30;
     document.getElementById('timer').textContent = `Time: ${totalTime}`;
     starsCount = 0;
